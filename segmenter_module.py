@@ -30,36 +30,36 @@ class SegmenterModule(pl.LightningModule):
         return x
 
     def training_step(self, batch, batch_idx):
-        x, y = batch
+        image, depth, label = batch['image'], batch['depth'], batch['label']
 
-        y_hat = self(x)
-        loss = F.cross_entropy(y_hat, y)
+        y_hat = self(image)
+        loss = F.cross_entropy(y_hat, label)
         acc = torchmetrics.functional.iou(
-            y_hat.clone().detach(), y, num_classes=self.num_classes)
+            y_hat.clone().detach(), label, num_classes=self.num_classes)
 
         self.log('train_loss', loss, on_epoch=True, prog_bar=False)
         self.log('train_acc', acc, on_epoch=True, prog_bar=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
-        x, y = batch
+        image, depth, label = batch['image'], batch['depth'], batch['label']
 
-        y_hat = self(x)
-        loss = F.cross_entropy(y_hat, y)
+        y_hat = self(image)
+        loss = F.cross_entropy(y_hat, label)
         acc = torchmetrics.functional.iou(
-            y_hat.clone().detach(), y, num_classes=self.num_classes)
+            y_hat.clone().detach(), label, num_classes=self.num_classes)
 
         # logs
         self.log('val_loss', loss, on_epoch=True, prog_bar=True)
         self.log('val_acc', acc, on_epoch=True, prog_bar=True)
 
     def test_step(self, batch, batch_idx):
-        x, y = batch
+        image, depth, label = batch['image'], batch['depth'], batch['label']
 
-        y_hat = self(x)
-        loss = F.cross_entropy(y_hat, y)
+        y_hat = self(image)
+        loss = F.cross_entropy(y_hat, label)
         acc = torchmetrics.functional.iou(
-            y_hat.clone().detach(), y, num_classes=self.num_classes)
+            y_hat.clone().detach(), label, num_classes=self.num_classes)
 
         self.log('test_loss', loss, on_epoch=True, prog_bar=True)
         self.log('test_acc', acc, on_epoch=True, prog_bar=True)
@@ -68,7 +68,8 @@ class SegmenterModule(pl.LightningModule):
         self.config['optimizer_kwargs']['iter_max'] = self.num_samples_train * self.epochs
         self.config['optimizer_kwargs']['iter_warmup'] = 0.0
         self.config['optimizer_kwargs']['lr'] = self.learning_rate
-        optimizer = create_optimizer(Namespace(**self.config['optimizer_kwargs']), self)
+        optimizer = create_optimizer(
+            Namespace(**self.config['optimizer_kwargs']), self)
         scheduler = create_scheduler(
             Namespace(**self.config['optimizer_kwargs']), optimizer)
 
