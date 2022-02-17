@@ -19,14 +19,14 @@ inference_kwargs:
   window_size: 512
   window_stride: 512
 net_kwargs:
-  backbone: vit_deit_base_distilled_patch16_384
+  backbone: deit_base_distilled_patch16_384
   d_model: 768
   decoder:
     drop_path_rate: 0.0
     dropout: 0.1
     n_cls: 150
     n_layers: 2
-    name: mask_transformer_l2.u1.d768
+    name: mask_transformer
   distilled: true
   drop_path_rate: 0.1
   dropout: 0.0
