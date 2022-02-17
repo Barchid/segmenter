@@ -67,7 +67,5 @@ class SegmenterModule(pl.LightningModule):
         # NOTE: they must appear as arguments in the __init___() function
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
         parser.add_argument('--learning_rate', type=float, default=0.0001)
-        parser.add_argument('--config_path', type=str)
         parser.add_argument('--pretrain_path', type=str, default=None)
-        parser.add_argument('--num_classes', type=int, default=40)
         return parser

@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import pytorch_lightning as pl
+from get_dataloaders import get_nyuv2, get_sunrgbd
 from segmenter_module import SegmenterModule
 import yaml
 
@@ -20,7 +21,13 @@ def main():
         open(args.config_path, "r"), Loader=yaml.FullLoader
     )
 
-    datamodule = create_datamodule(args)
+    if args.dataset == 'nyuv2':
+        train_loader, val_loader = get_nyuv2(
+            args.data_dir, config, args.batch_size, args.num_workers)
+
+    else:
+        train_loader, val_loader = get_sunrgbd(
+            args.data_dir, config, args.batch_size, args.num_workers)
 
     module = create_module(args, config)
 
@@ -28,7 +35,8 @@ def main():
 
     # Launch training/validation
     if args.mode == "train":
-        trainer.fit(module, datamodule=datamodule, ckpt_path=args.ckpt_path)
+        trainer.fit(module, ckpt_path=args.ckpt_path,
+                    train_dataloaders=train_loader, val_dataloaders=val_loader)
 
         # report results in a txt file
         report_path = os.path.join(args.default_root_dir, 'train_report.txt')
@@ -37,36 +45,28 @@ def main():
         # TODO: add any data you want to report here
         # here, we put the model's hyperparameters and the resulting val accuracy
         report.write(
-            f"{args.name} {args.dataset} {args.event_representation} {args.learning_rate}  {trainer.checkpoint_callback.best_model_score}\n")
+            f"{config['net_kwargs']['backbone']} {args.dataset} {args.learning_rate}  {trainer.checkpoint_callback.best_model_score}\n")
     elif args.mode == "lr_find":
-        lr_finder = trainer.tuner.lr_find(module, datamodule=datamodule)
+        lr_finder = trainer.tuner.lr_find(
+            module, train_dataloaders=train_loader)
         fig = lr_finder.plot(suggest=True)
         fig.show()
         print(f'SUGGESTION IS :', lr_finder.suggestion())
     else:
-        trainer.validate(module, datamodule=datamodule,
-                         ckpt_path=args.ckpt_path)
+        trainer.validate(module, ckpt_path=args.ckpt_path,
+                         val_dataloaders=val_loader)
 
 
 def create_module(args, config: dict) -> pl.LightningModule:
     # vars() is required to pass the arguments as parameters for the LightningModule
     dict_args = vars(args)
     dict_args['config'] = config
+    dict_args['num_classes'] = 40 if args.dataset == 'nyuv2' else 37
 
     # TODO: you can change the module class here
     module = SegmenterModule(**dict_args)
 
     return module
-
-
-def create_datamodule(args) -> pl.LightningDataModule:
-    # vars() is required to pass the arguments as parameters for the LightningDataModule
-    dict_args = vars(args)
-
-    # TODO: you can change the datamodule here
-    datamodule = DVSDataModule(**dict_args)
-
-    return datamodule
 
 
 def create_trainer(args) -> pl.Trainer:
@@ -100,6 +100,7 @@ def get_args():
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--dataset', type=str, choices=["nyudv2", "sunrgbd"])
     parser.add_argument('--config_path', type=str, required=True)
+    parser.add_argument('--data_dir', type=str, default='data')
 
     # Args for model
     parser = SegmenterModule.add_model_specific_args(parser)
