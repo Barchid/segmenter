@@ -85,7 +85,7 @@ def create_trainer(args) -> pl.Trainer:
 
     logger = pl.loggers.TensorBoardLogger(
         os.path.join(args.default_root_dir, "logger"),
-        name=f"{args.name} {args.dataset} {args.event_representation}"
+        name=f"{args.dataset}"
     )
 
     # create trainer
