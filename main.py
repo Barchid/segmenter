@@ -10,6 +10,7 @@ from get_dataloaders import get_nyuv2, get_sunrgbd
 from segmenter_module import SegmenterModule
 import yaml
 from torch.utils.data import DataLoader
+from pytorch_lightning.callbacks import LearningRateMonitor
 
 
 def main():
@@ -89,7 +90,7 @@ def create_trainer(args) -> pl.Trainer:
 
     # create trainer
     trainer = pl.Trainer.from_argparse_args(
-        args, callbacks=[checkpoint_callback], logger=logger)
+        args, callbacks=[checkpoint_callback, LearningRateMonitor(logging_interval='step')], logger=logger)
     return trainer
 
 
