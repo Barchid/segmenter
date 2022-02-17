@@ -63,7 +63,7 @@ def create_module(args, config: dict, train_loader: DataLoader) -> pl.LightningM
     # vars() is required to pass the arguments as parameters for the LightningModule
     dict_args = vars(args)
     dict_args['config'] = config
-    dict_args['num_classes'] = 40 if args.dataset == 'nyudv2' else 37
+    dict_args['num_classes'] = 41 if args.dataset == 'nyudv2' else 37
     dict_args['num_samples_train'] = len(train_loader)
     dict_args['epochs'] = args.max_epochs
     dict_args['in_channels'] = 3
