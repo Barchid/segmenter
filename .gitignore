@@ -150,3 +150,5 @@ experiments/*
 !experiments/.gitkeep
 data/*
 !data/.gitkeep
+pretrain_ckpt/*
+!pretrain_ckpt/.gitkeep
