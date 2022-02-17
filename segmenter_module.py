@@ -1,6 +1,5 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from os import times
-from dotmap import DotMap
 
 import torch
 import pytorch_lightning as pl
@@ -69,7 +68,7 @@ class SegmenterModule(pl.LightningModule):
         self.config['optimizer_kwargs']['iter_max'] = self.num_samples_train * self.epochs
         self.config['optimizer_kwargs']['iter_warmup'] = 0.0
         self.config['optimizer_kwargs']['lr'] = self.learning_rate
-        optimizer = create_optimizer(DotMap(self.config['optimizer_kwargs']), self)
+        optimizer = create_optimizer(Namespace(**self.config['optimizer_kwargs']), self)
         scheduler = create_scheduler(
             self.config['optimizer_kwargs'], optimizer)
 
