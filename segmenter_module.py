@@ -70,7 +70,7 @@ class SegmenterModule(pl.LightningModule):
         self.config['optimizer_kwargs']['lr'] = self.learning_rate
         optimizer = create_optimizer(Namespace(**self.config['optimizer_kwargs']), self)
         scheduler = create_scheduler(
-            self.config['optimizer_kwargs'], optimizer)
+            Namespace(**self.config['optimizer_kwargs']), optimizer)
 
         return [optimizer], [scheduler]
 
