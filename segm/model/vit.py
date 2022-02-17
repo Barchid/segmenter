@@ -49,6 +49,7 @@ class VisionTransformer(nn.Module):
         drop_path_rate=0.0,
         distilled=False,
         channels=3,
+        **kwargs
     ):
         super().__init__()
         self.patch_embed = PatchEmbedding(
