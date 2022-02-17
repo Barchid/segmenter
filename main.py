@@ -9,6 +9,7 @@ import pytorch_lightning as pl
 from get_dataloaders import get_nyuv2, get_sunrgbd
 from segmenter_module import SegmenterModule
 import yaml
+from torch.utils.data import DataLoader
 
 
 def main():
@@ -21,7 +22,7 @@ def main():
         open(args.config_path, "r"), Loader=yaml.FullLoader
     )
 
-    if args.dataset == 'nyuv2':
+    if args.dataset == 'nyudv2':
         train_loader, val_loader = get_nyuv2(
             args.data_dir, config, args.batch_size, args.num_workers)
 
@@ -29,7 +30,7 @@ def main():
         train_loader, val_loader = get_sunrgbd(
             args.data_dir, config, args.batch_size, args.num_workers)
 
-    module = create_module(args, config)
+    module = create_module(args, config, train_loader)
 
     trainer = create_trainer(args)
 
@@ -57,11 +58,14 @@ def main():
                          val_dataloaders=val_loader)
 
 
-def create_module(args, config: dict) -> pl.LightningModule:
+def create_module(args, config: dict, train_loader: DataLoader) -> pl.LightningModule:
     # vars() is required to pass the arguments as parameters for the LightningModule
     dict_args = vars(args)
     dict_args['config'] = config
-    dict_args['num_classes'] = 40 if args.dataset == 'nyuv2' else 37
+    dict_args['num_classes'] = 40 if args.dataset == 'nyudv2' else 37
+    dict_args['num_samples_train'] = len(train_loader)
+    dict_args['epochs'] = args.max_epochs
+    dict_args['in_channels'] = 3
 
     # TODO: you can change the module class here
     module = SegmenterModule(**dict_args)

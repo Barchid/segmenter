@@ -6,18 +6,24 @@ import pytorch_lightning as pl
 from torch.nn import functional as F
 import torchmetrics
 from get_segmenter import get_segmenter
+from segm.optim.factory import create_optimizer, create_scheduler
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
 class SegmenterModule(pl.LightningModule):
-    def __init__(self, config: dict, learning_rate: float, in_channels: int, num_classes: int, pretrain_path: str = None, **kwargs):
+    def __init__(self, config: dict, learning_rate: float, in_channels: int, num_classes: int, num_samples_train: int, epochs: int, pretrain_path: str = None, **kwargs):
         super().__init__()
         self.save_hyperparameters(
-            ignore=["config_path", "pretrain_path", "in_channels", "num_classes"])
+            ignore=["config_path", "pretrain_path", "in_channels", "num_classes", "num_samples_train", "epochs"])
         self.num_classes = num_classes
         self.in_channels = in_channels
-        self.model = get_segmenter(config, in_channels, num_classes, pretrain_path)
+        self.model = get_segmenter(
+            config, in_channels, num_classes, pretrain_path)
+        self.config = config
+        self.num_samples_train = num_samples_train
+        self.epochs = epochs
+        self.learning_rate = learning_rate
 
     def forward(self, x):
         x = self.model(x)
@@ -59,7 +65,14 @@ class SegmenterModule(pl.LightningModule):
         self.log('test_acc', acc, on_epoch=True, prog_bar=True)
 
     def configure_optimizers(self):
-        return torch.optim.AdamW(self.parameters(), lr=self.hparams.learning_rate)
+        self.config['optimizer_kwargs']['iter_max'] = self.num_samples_train * self.epochs
+        self.config['optimizer_kwargs']['iter_warmup'] = 0.0
+        self.config['optimizer_kwargs']['lr'] = self.learning_rate
+        optimizer = create_optimizer(self.config['optimizer_kwargs'], self)
+        scheduler = create_scheduler(
+            self.config['optimizer_kwargs'], optimizer)
+
+        return [optimizer], [scheduler]
 
     @staticmethod
     def add_model_specific_args(parent_parser):
