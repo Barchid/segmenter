@@ -6,6 +6,7 @@ import yaml
 from timm.models.layers import trunc_normal_
 from segm.model.factory import create_segmenter
 from segm.model.vit import PatchEmbedding
+from segm.model.utils import init_weights
 
 
 def get_segmenter(config: dict, in_channels: int, num_classes: int, pretrain_path: str = None):
@@ -15,11 +16,19 @@ def get_segmenter(config: dict, in_channels: int, num_classes: int, pretrain_pat
         checkpoint = torch.load(pretrain_path)
         segmenter.load_state_dict(checkpoint['model'])
 
-    segmenter.decoder.n_cls = num_classes
-    segmenter.decoder.cls_emb = nn.Parameter(torch.randn(
-        1, num_classes, config['net_kwargs']['d_model']))
-    trunc_normal_(segmenter.decoder.cls_emb, std=0.02)
-    segmenter.decoder.mask_norm = nn.LayerNorm(num_classes)
+    if config['net_kwargs']['decoder']['name'] == "linear":
+        print('Linear Decoder')
+        segmenter.decoder.n_cls = num_classes
+        segmenter.decoder.head = nn.Linear(
+            config['net_kwargs']['d_model'], num_classes)
+        segmenter.decoder.apply(init_weights)
+    else:
+        print('Mask Transformer as Decoder')
+        segmenter.decoder.n_cls = num_classes
+        segmenter.decoder.cls_emb = nn.Parameter(torch.randn(
+            1, num_classes, config['net_kwargs']['d_model']))
+        trunc_normal_(segmenter.decoder.cls_emb, std=0.02)
+        segmenter.decoder.mask_norm = nn.LayerNorm(num_classes)
 
     if in_channels != 3:
         segmenter.encoder.patch_embed = PatchEmbedding(
