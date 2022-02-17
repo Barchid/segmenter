@@ -73,6 +73,7 @@ def create_vit(model_cfg):
     elif "deit" in backbone:
         load_pretrained(model, default_cfg, filter_fn=checkpoint_filter_fn)
     else:
+        print('loading pretrained model')
         load_custom_pretrained(model, default_cfg)
 
     return model
