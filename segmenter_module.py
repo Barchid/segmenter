@@ -11,14 +11,13 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
 class SegmenterModule(pl.LightningModule):
-    def __init__(self, learning_rate: float, config_path: str, in_channels: int, num_classes: int, pretrain_path: str = None, **kwargs):
+    def __init__(self, config: dict, learning_rate: float, in_channels: int, num_classes: int, pretrain_path: str = None, **kwargs):
         super().__init__()
         self.save_hyperparameters(
             ignore=["config_path", "pretrain_path", "in_channels", "num_classes"])
         self.num_classes = num_classes
         self.in_channels = in_channels
-        self.model = get_segmenter(
-            config_path, in_channels, num_classes, pretrain_path)
+        self.model = get_segmenter(config, in_channels, num_classes, pretrain_path)
 
     def forward(self, x):
         x = self.model(x)

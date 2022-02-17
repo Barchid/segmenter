@@ -7,6 +7,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 import pytorch_lightning as pl
 from segmenter_module import SegmenterModule
+import yaml
+
 
 def main():
     # seeds the random from numpy, pytorch, etc for reproductibility
@@ -14,9 +16,13 @@ def main():
 
     args = get_args()
 
+    config = yaml.load(
+        open(args.config_path, "r"), Loader=yaml.FullLoader
+    )
+
     datamodule = create_datamodule(args)
 
-    module = create_module(args, datamodule)
+    module = create_module(args, config)
 
     trainer = create_trainer(args)
 
@@ -38,12 +44,14 @@ def main():
         fig.show()
         print(f'SUGGESTION IS :', lr_finder.suggestion())
     else:
-        trainer.validate(module, datamodule=datamodule, ckpt_path=args.ckpt_path)
+        trainer.validate(module, datamodule=datamodule,
+                         ckpt_path=args.ckpt_path)
 
 
-def create_module(args, datamodule: SegmenterModule) -> pl.LightningModule:
+def create_module(args, config: dict) -> pl.LightningModule:
     # vars() is required to pass the arguments as parameters for the LightningModule
     dict_args = vars(args)
+    dict_args['config'] = config
 
     # TODO: you can change the module class here
     module = SegmenterModule(**dict_args)
@@ -76,7 +84,8 @@ def create_trainer(args) -> pl.Trainer:
     )
 
     # create trainer
-    trainer = pl.Trainer.from_argparse_args(args, callbacks=[checkpoint_callback], logger=logger)
+    trainer = pl.Trainer.from_argparse_args(
+        args, callbacks=[checkpoint_callback], logger=logger)
     return trainer
 
 
@@ -84,11 +93,13 @@ def get_args():
     # Program args
     # TODO: you can add program-specific arguments here
     parser = ArgumentParser()
-    parser.add_argument('--mode', type=str, choices=["train", "validate", "lr_find"], default="train")
+    parser.add_argument(
+        '--mode', type=str, choices=["train", "validate", "lr_find"], default="train")
     parser.add_argument('--ckpt_path', type=str, default=None,
                         help="Path of a checkpoint file. Defaults to None, meaning the training/testing will start from scratch.")
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--dataset', type=str, choices=["nyudv2", "sunrgbd"])
+    parser.add_argument('--config_path', type=str, required=True)
 
     # Args for model
     parser = SegmenterModule.add_model_specific_args(parser)

@@ -8,10 +8,7 @@ from segm.model.factory import create_segmenter
 from segm.model.vit import PatchEmbedding
 
 
-def get_segmenter(config_path: str, in_channels: int, num_classes: int, pretrain_path: str = None):
-    config = yaml.load(
-        open(config_path, "r"), Loader=yaml.FullLoader
-    )
+def get_segmenter(config: dict, in_channels: int, num_classes: int, pretrain_path: str = None):
     segmenter = create_segmenter(config['net_kwargs'])
 
     if pretrain_path is not None:
