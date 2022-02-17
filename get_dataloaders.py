@@ -5,7 +5,7 @@ from preprocessing import get_preprocessor
 from torch.utils.data import DataLoader
 
 
-def get_nyuv2(data_dir: str, config: dict, batch_size: int, num_workers: int, **kwargs):
+def get_nyuv2(data_dir: str, config: dict, batch_size: int, num_workers: int, debug: bool, **kwargs):
     train_set = NYUv2(
         data_dir=data_dir,
         n_classes=40,
@@ -21,7 +21,7 @@ def get_nyuv2(data_dir: str, config: dict, batch_size: int, num_workers: int, **
     )
     train_set.preprocessor = train_transforms
     train_loader = DataLoader(train_set, batch_size=batch_size,
-                              num_workers=num_workers, drop_last=True, shuffle=True)
+                              num_workers=num_workers, drop_last=True, shuffle= not debug)
 
     val_set = NYUv2(
         data_dir=data_dir,
@@ -43,7 +43,7 @@ def get_nyuv2(data_dir: str, config: dict, batch_size: int, num_workers: int, **
     return train_loader, val_loader
 
 
-def get_sunrgbd(data_dir: str, config: dict, batch_size: int, num_workers: int, **kwargs):
+def get_sunrgbd(data_dir: str, config: dict, batch_size: int, num_workers: int, debug: bool, **kwargs):
     train_set = SUNRGBD(
         data_dir=data_dir,
         split='train',
@@ -58,7 +58,7 @@ def get_sunrgbd(data_dir: str, config: dict, batch_size: int, num_workers: int, 
     )
     train_set.preprocessor = train_transforms
     train_loader = DataLoader(train_set, batch_size=batch_size,
-                              num_workers=num_workers, drop_last=True, shuffle=True)
+                              num_workers=num_workers, drop_last=True, shuffle=not debug)
 
     val_set = SUNRGBD(
         data_dir=data_dir,

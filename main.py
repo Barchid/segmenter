@@ -25,11 +25,11 @@ def main():
 
     if args.dataset == 'nyudv2':
         train_loader, val_loader = get_nyuv2(
-            args.data_dir, config, args.batch_size, 0)
+            args.data_dir, config, args.batch_size, 0, args.overfit_batches)
 
     else:
         train_loader, val_loader = get_sunrgbd(
-            args.data_dir, config, args.batch_size, 0)
+            args.data_dir, config, args.batch_size, 0, args.overfit_batches)
 
     module = create_module(args, config, train_loader)
 
