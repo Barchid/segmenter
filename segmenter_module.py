@@ -33,7 +33,9 @@ class SegmenterModule(pl.LightningModule):
         image, depth, label = batch['image'], batch['depth'], batch['label']
 
         y_hat = self(image)
-        loss = F.cross_entropy(y_hat, label.long())
+        
+        label = label.long()
+        loss = F.cross_entropy(y_hat, label)
         acc = torchmetrics.functional.iou(
             y_hat.clone().detach(), label, num_classes=self.num_classes)
 
@@ -45,7 +47,9 @@ class SegmenterModule(pl.LightningModule):
         image, depth, label = batch['image'], batch['depth'], batch['label']
 
         y_hat = self(image)
-        loss = F.cross_entropy(y_hat, label.long())
+        
+        label = label.long()
+        loss = F.cross_entropy(y_hat, label)
         acc = torchmetrics.functional.iou(
             y_hat.clone().detach(), label, num_classes=self.num_classes)
 
@@ -57,7 +61,9 @@ class SegmenterModule(pl.LightningModule):
         image, depth, label = batch['image'], batch['depth'], batch['label']
 
         y_hat = self(image)
-        loss = F.cross_entropy(y_hat, label.long())
+        
+        label = label.long()
+        loss = F.cross_entropy(y_hat, label)
         acc = torchmetrics.functional.iou(
             y_hat.clone().detach(), label, num_classes=self.num_classes)
 
